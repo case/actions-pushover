@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Only PRs share a group, so pushes to main are never cancelled
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    # A single quote breaks out of the quoting that run: splicing used to rely on
+    env:
+      HOSTILE_TITLE: x'$(touch pwned)'y "quoted" & title=evil
+      HOSTILE_MESSAGE: line one & message=evil @/etc/passwd
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install tools from mise.toml
+        uses: jdx/mise-action@7a4e45a543138629540c9a1616d08632b893e492  # v5.0.1
+        with:
+          # Newest mise release at least 14 days old, matching renovate.json's minimumReleaseAge
+          minimum_release_age: 14d
+
+      - name: Run bin/ci
+        run: bin/ci
+
+      # The action's own wiring is the one thing bin/test cannot reach
+      - name: Put the stub curl on PATH
+        run: test/use-stub-curl
+
+      - name: Run the action with hostile inputs
+        uses: ./
+        with:
+          pushover_api_token: t
+          pushover_user_key: u
+          title: ${{ env.HOSTILE_TITLE }}
+          message: ${{ env.HOSTILE_MESSAGE }}
+
+      - name: Check what the action sent
+        run: test/check-action-call
