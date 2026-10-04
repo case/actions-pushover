@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+"""Checks the stub curl call that the action made in CI, after test/use-stub-curl."""
+
+import os
+import sys
+from pathlib import Path
+
+from curl_call import load_args, problems
+
+repo = Path(__file__).resolve().parent.parent
+if (repo / "pwned").exists():
+    sys.exit("  FAIL: an input was executed as shell")
+
+expected = {
+    "token": "t",
+    "user": "u",
+    "title": os.environ["HOSTILE_TITLE"],
+    "message": os.environ["HOSTILE_MESSAGE"],
+}
+found = problems(load_args(os.environ["CURL_ARGS"]), expected)
+for problem in found:
+    print(f"  FAIL: {problem}")
+if found:
+    sys.exit(1)
+print("==> The action passed every input to curl as literal data")

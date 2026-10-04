@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Puts the stub curl first on PATH for later steps in a GitHub Actions job.
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+echo "$PWD/test/stub" >>"$GITHUB_PATH"
+echo "CURL_ARGS=$RUNNER_TEMP/curl-args" >>"$GITHUB_ENV"
