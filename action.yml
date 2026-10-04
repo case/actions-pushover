@@ -20,12 +20,10 @@ runs:
   steps:
     - name: Send Pushover notification
       shell: bash
-      run: |
-        curl -Ss -X POST -H 'Content-type: application/json' \
-          --data '{
-            "token": "${{ inputs.pushover_api_token }}",
-            "user": "${{ inputs.pushover_user_key }}",
-            "title": "${{ inputs.title }}",
-            "message": "${{ inputs.message }}"
-          }' \
-          https://api.pushover.net/1/messages.json
+      # Inputs go through env, so no input value can become script text
+      env:
+        PUSHOVER_API_TOKEN: ${{ inputs.pushover_api_token }}
+        PUSHOVER_USER_KEY: ${{ inputs.pushover_user_key }}
+        PUSHOVER_TITLE: ${{ inputs.title }}
+        PUSHOVER_MESSAGE: ${{ inputs.message }}
+      run: '"$GITHUB_ACTION_PATH/send.sh"'
