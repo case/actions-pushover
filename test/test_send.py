@@ -11,6 +11,7 @@ import threading
 import unittest
 from collections.abc import Generator
 from contextlib import contextmanager
+from itertools import pairwise
 from pathlib import Path
 
 from curl_call import load_args, problems
@@ -144,7 +145,7 @@ class SendTest(unittest.TestCase):
         args = load_args(str(record))
         self.assertEqual(problems(args, expected), [])
         # Checked as an argument: a fake server that hangs past 30s would slow every run.
-        has_timeout = ("--max-time", "30") in set(zip(args, args[1:]))
+        has_timeout = ("--max-time", "30") in set(pairwise(args))
         self.assertTrue(has_timeout, "curl was not given --max-time 30")
 
     def test_rejects_empty_or_unset_input(self) -> None:

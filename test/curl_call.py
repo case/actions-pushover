@@ -1,6 +1,7 @@
 """Reads the argv the stub curl recorded and checks what it sent to Pushover."""
 
 import json
+from itertools import pairwise
 
 API_URL = "https://api.pushover.net/1/messages.json"
 
@@ -14,7 +15,7 @@ def problems(args: list[str], expected: dict[str, str]) -> list[str]:
     """Returns one message per expected field not sent verbatim, empty when the call is right."""
     found = []
     # Plain --data would pass "& title=evil" through as a second title parameter.
-    pairs = set(zip(args, args[1:]))
+    pairs = set(pairwise(args))
     for name, value in expected.items():
         if ("--data-urlencode", f"{name}={value}") not in pairs:
             found.append(f"curl did not receive {name} verbatim via --data-urlencode")
